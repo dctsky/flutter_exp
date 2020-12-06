@@ -1,5 +1,4 @@
 import 'dart:io';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_exp/date_picker.dart';
 import 'package:flutter_exp/model/category_item.dart';
@@ -55,7 +54,7 @@ class _CreatePageState extends State<CreatePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.green[50],
+      backgroundColor: Colors.lightBlue[50],
       appBar: _buildAppBar(),
       body: _buildBody(),
     );
@@ -101,7 +100,7 @@ class _CreatePageState extends State<CreatePage> {
                     filled: true,
                     enabledBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.all(Radius.circular(20.0)),
-                      borderSide: BorderSide(color: Colors.green[50]),
+                      borderSide: BorderSide(color: Colors.lightBlue[50]),
                     ),
                     focusedBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.all(Radius.circular(20.0)),
@@ -170,7 +169,7 @@ class _CreatePageState extends State<CreatePage> {
         style: TextStyle(color: Colors.black),
       ),
       centerTitle: true,
-      backgroundColor: Colors.green[50],
+      backgroundColor: Colors.lightBlue[50],
       elevation: 0,
       actions: [
         FlatButton(

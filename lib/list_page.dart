@@ -66,7 +66,7 @@ class _ListPageState extends State<ListPage> {
             children: [
               Expanded(
                 child: Container(
-                  color: Colors.green[50],
+                  color: Colors.lightBlue[50],
                   child: CustomScrollView(
                     scrollDirection: Axis.vertical,
                     slivers: [
@@ -74,7 +74,7 @@ class _ListPageState extends State<ListPage> {
                         padding: EdgeInsets.symmetric(vertical: 20.0),
                         sliver: SliverFixedExtentList(
                           //높이가 고정된 리스트를 보여주기위해 SliverFixedExtentList 을 사용
-                          itemExtent: 125.0,
+                          itemExtent: 110.0,
                           //itemExtent 는 행의 크기를 설정하는 속성이고 크기가 모두 같으면 그리는 속도가 빨라진다.
                           delegate: SliverChildListDelegate(_fetchList(items)),
                         ),
@@ -92,7 +92,7 @@ class _ListPageState extends State<ListPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: SliderMenuContainer(
-          appBarColor: Colors.green[50],
+          appBarColor: Colors.lightBlue[50],
           appBarHeight: 110,
           key: _key,
           sliderMenuOpenSize: 200,
