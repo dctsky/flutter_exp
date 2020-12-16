@@ -3,7 +3,6 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_exp/product_info.dart';
 import 'package:flutter_slider_drawer/flutter_slider_drawer.dart';
-
 import 'create_page.dart';
 import 'menu_widget.dart';
 
@@ -14,16 +13,19 @@ class ListPage extends StatefulWidget {
 
 class _ListPageState extends State<ListPage> {
   GlobalKey<SliderMenuContainerState> _key =
-  new GlobalKey<SliderMenuContainerState>();
+      new GlobalKey<SliderMenuContainerState>();
   String title;
   Widget body;
   TextEditingController _textEditingController;
   String _query = "";
   String _filter = "all";
-  int _itemCount, _closeCount, _expCount = 0;
+  int _itemCount, _closeCount, _expCount;
 
   @override
   void initState() {
+    _itemCount = 0;
+    _closeCount = 0;
+    _expCount = 0;
     title = "전체보관함";
     body = _buildBody();
     super.initState();
@@ -31,32 +33,12 @@ class _ListPageState extends State<ListPage> {
 
   List _fetchList(List<QueryDocumentSnapshot> items) {
     final DateTime todayDate = DateTime.now();
-    List filteredList = items.where(
+    List closeList = [];
+    List expList = [];
+    List filteredList = items
+        .where(
             (e) => e.get('title').toLowerCase().contains(_query.toLowerCase()))
         .toList();
-    if (_filter == "close") {
-      filteredList = filteredList
-          .where((element) =>
-      (todayDate
-          .difference(element.get('expDate').toDate())
-          .inDays <
-          0 &&
-          -3 <
-              todayDate
-                  .difference(element.get('expDate').toDate())
-                  .inDays) ||
-          todayDate
-              .difference(element.get('expDate').toDate())
-              .inDays == 0)
-          .toList();
-    } else if (_filter == "exp") {
-      filteredList = filteredList
-          .where((element) =>
-      0 < todayDate
-          .difference(element.get('expDate').toDate())
-          .inDays)
-          .toList();
-    }
 
     if (this.title == "식품") {
       filteredList = filteredList
@@ -71,9 +53,30 @@ class _ListPageState extends State<ListPage> {
           .where((element) => element.get('category') == "기타")
           .toList();
     }
+    _itemCount = filteredList.length;
 
-    return filteredList.map((e) => ProductInfo(e))
+    closeList = filteredList
+        .where((element) =>
+            (todayDate.difference(element.get('expDate').toDate()).inDays < 0 &&
+                -3 <
+                    todayDate
+                        .difference(element.get('expDate').toDate())
+                        .inDays) ||
+            todayDate.difference(element.get('expDate').toDate()).inDays == 0)
         .toList();
+    expList = filteredList
+        .where((element) =>
+            0 < todayDate.difference(element.get('expDate').toDate()).inDays)
+        .toList();
+    if (_filter == "close") {
+      filteredList = closeList;
+    } else if (_filter == "exp") {
+      filteredList = expList;
+    }
+    _closeCount = closeList.length;
+    _expCount = expList.length;
+
+    return filteredList.map((e) => ProductInfo(e)).toList();
   }
 
   Widget _buildBody() {
@@ -88,32 +91,6 @@ class _ListPageState extends State<ListPage> {
 
           //collection 아래의 모든 문서 가져오기.
           var items = snapshot.data.docs ?? [];
-          int _itemCount = items.length;
-          final DateTime todayDate = DateTime.now();
-
-          var _closeCount = items
-              .map((e) => e.get('expDate').toDate())
-              .where((element) =>
-          (todayDate
-              .difference(element)
-              .inDays < 0 &&
-              -3 < todayDate
-                  .difference(element)
-                  .inDays) ||
-              todayDate
-                  .difference(element)
-                  .inDays == 0)
-              .toList()
-              .length;
-
-          var _expCount = items
-              .map((e) => e.get('expDate').toDate())
-              .where((element) =>
-          0 < todayDate
-              .difference(element)
-              .inDays)
-              .toList()
-              .length;
 
           //유통기한 날짜로 오름차순 정렬
           items.sort((a, b) => a.get('expDate').compareTo(b.get('expDate')));
@@ -153,7 +130,7 @@ class _ListPageState extends State<ListPage> {
                             children: [
                               Row(
                                 mainAxisAlignment:
-                                MainAxisAlignment.spaceBetween,
+                                    MainAxisAlignment.spaceBetween,
                                 mainAxisSize: MainAxisSize.max,
                                 children: [
                                   Row(
@@ -197,7 +174,7 @@ class _ListPageState extends State<ListPage> {
                                               '유통기한임박',
                                               style: TextStyle(
                                                   fontSize: 20,
-                                                  color: Colors.red[400]),
+                                                  color: Colors.orange),
                                             ),
                                             SizedBox(
                                               height: 20,
@@ -228,7 +205,7 @@ class _ListPageState extends State<ListPage> {
                                               '유통기한만료',
                                               style: TextStyle(
                                                   fontSize: 20,
-                                                  color: Colors.purple),
+                                                  color: Colors.red[400]),
                                             ),
                                             SizedBox(
                                               height: 20,
@@ -278,12 +255,12 @@ class _ListPageState extends State<ListPage> {
                           filled: true,
                           enabledBorder: OutlineInputBorder(
                             borderRadius:
-                            BorderRadius.all(Radius.circular(20.0)),
+                                BorderRadius.all(Radius.circular(20.0)),
                             borderSide: BorderSide(color: Colors.red[100]),
                           ),
                           focusedBorder: OutlineInputBorder(
                             borderRadius:
-                            BorderRadius.all(Radius.circular(20.0)),
+                                BorderRadius.all(Radius.circular(20.0)),
                             borderSide: BorderSide(color: Colors.white),
                           ),
                         ),

@@ -17,17 +17,19 @@ class ProductInfo extends StatelessWidget {
     final int difference_hours = (todayDate.difference(expDate).inHours).abs();
     String dDay = '';
     Color dDayColor;
-    if (difference == 0) {
-      if (expDate.day != todayDate.day) {
-        dDay = '$difference_hours시간 남음';
-      } else {
-        dDay = 'D-0';
+    if (-3 < difference && difference <= 0) {
+      dDay = 'D$difference';
+      dDayColor = Colors.orange;
+      if (difference == 0) {
+        if (expDate.day != todayDate.day) {
+          dDay = '$difference_hours시간 남음';
+        } else {
+          dDay = 'D-0';
+        }
       }
-
-      dDayColor = Colors.red[400];
     } else if (0 < difference) {
       dDay = 'D+$difference';
-      dDayColor = Colors.purple;
+      dDayColor = Colors.red[400];
     } else {
       dDay = 'D$difference';
       dDayColor = Colors.green[600];
@@ -128,15 +130,19 @@ class ProductInfo extends StatelessWidget {
                           FlatButton(
                             child: new Text("삭제"),
                             onPressed: () {
-                              final firebase_storage.Reference firebaseStorageRef =
-                              firebase_storage.FirebaseStorage.instance
-                                  .ref()
-                                  .child('exp')
-                                  .child('${snapshot.get('imageName')}');
+                              final firebase_storage.Reference
+                                  firebaseStorageRef = firebase_storage
+                                      .FirebaseStorage.instance
+                                      .ref()
+                                      .child('exp')
+                                      .child('${snapshot.get('imageName')}');
 
                               firebaseStorageRef.delete();
 
-                              FirebaseFirestore.instance.collection("exp").doc("${snapshot.get("id")}").delete();
+                              FirebaseFirestore.instance
+                                  .collection("exp")
+                                  .doc("${snapshot.get("id")}")
+                                  .delete();
 
                               Navigator.pop(context);
                             },
@@ -144,7 +150,6 @@ class ProductInfo extends StatelessWidget {
                         ],
                       );
                     });
-
               },
             ),
           ],
