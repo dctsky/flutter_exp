@@ -8,7 +8,7 @@ class MenuWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      decoration: BoxDecoration(color: Colors.lightBlue[50]),
+      decoration: BoxDecoration(color: Colors.grey[100]),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: <Widget>[
@@ -37,9 +37,10 @@ class MenuWidget extends StatelessWidget {
             height: 20,
           ),
           // sliderItem('홈', Icons.home),
-          sliderItem('전체보기', Icons.list),
+          sliderItem('전체보관함', Icons.list),
           sliderItem('식품', Icons.list),
           sliderItem('화장품', Icons.list),
+          sliderItem('기타', Icons.list),
           // sliderItem('Setting', Icons.settings),
         ],
       ),

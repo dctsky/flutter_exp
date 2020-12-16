@@ -6,7 +6,6 @@ import 'package:flutter_slider_drawer/flutter_slider_drawer.dart';
 
 import 'create_page.dart';
 import 'menu_widget.dart';
-import 'model/products.dart';
 
 class ListPage extends StatefulWidget {
   @override
@@ -15,35 +14,66 @@ class ListPage extends StatefulWidget {
 
 class _ListPageState extends State<ListPage> {
   GlobalKey<SliderMenuContainerState> _key =
-      new GlobalKey<SliderMenuContainerState>();
+  new GlobalKey<SliderMenuContainerState>();
   String title;
   Widget body;
+  TextEditingController _textEditingController;
+  String _query = "";
+  String _filter = "all";
+  int _itemCount, _closeCount, _expCount = 0;
 
   @override
   void initState() {
-    title = "Home";
+    title = "전체보관함";
     body = _buildBody();
     super.initState();
   }
 
   List _fetchList(List<QueryDocumentSnapshot> items) {
-    if (this.title == "식품") {
-      return items
-          .map((e) => ProductInfo(e))
-          .toList()
-          .where((element) => element.snapshot.get('category') == "식품")
+    final DateTime todayDate = DateTime.now();
+    List filteredList = items.where(
+            (e) => e.get('title').toLowerCase().contains(_query.toLowerCase()))
+        .toList();
+    if (_filter == "close") {
+      filteredList = filteredList
+          .where((element) =>
+      (todayDate
+          .difference(element.get('expDate').toDate())
+          .inDays <
+          0 &&
+          -3 <
+              todayDate
+                  .difference(element.get('expDate').toDate())
+                  .inDays) ||
+          todayDate
+              .difference(element.get('expDate').toDate())
+              .inDays == 0)
           .toList();
-    } else if (this.title == "화장품") {
-      return items
-          .map((e) => ProductInfo(e))
-          .toList()
-          .where((element) => element.snapshot.get('category') == "화장품")
-          .toList();
-    } else {
-      return items
-          .map((e) => ProductInfo(e))
+    } else if (_filter == "exp") {
+      filteredList = filteredList
+          .where((element) =>
+      0 < todayDate
+          .difference(element.get('expDate').toDate())
+          .inDays)
           .toList();
     }
+
+    if (this.title == "식품") {
+      filteredList = filteredList
+          .where((element) => element.get('category') == "식품")
+          .toList();
+    } else if (this.title == "화장품") {
+      filteredList = filteredList
+          .where((element) => element.get('category') == "화장품")
+          .toList();
+    } else if (this.title == "기타") {
+      filteredList = filteredList
+          .where((element) => element.get('category') == "기타")
+          .toList();
+    }
+
+    return filteredList.map((e) => ProductInfo(e))
+        .toList();
   }
 
   Widget _buildBody() {
@@ -58,29 +88,221 @@ class _ListPageState extends State<ListPage> {
 
           //collection 아래의 모든 문서 가져오기.
           var items = snapshot.data.docs ?? [];
+          int _itemCount = items.length;
+          final DateTime todayDate = DateTime.now();
+
+          var _closeCount = items
+              .map((e) => e.get('expDate').toDate())
+              .where((element) =>
+          (todayDate
+              .difference(element)
+              .inDays < 0 &&
+              -3 < todayDate
+                  .difference(element)
+                  .inDays) ||
+              todayDate
+                  .difference(element)
+                  .inDays == 0)
+              .toList()
+              .length;
+
+          var _expCount = items
+              .map((e) => e.get('expDate').toDate())
+              .where((element) =>
+          0 < todayDate
+              .difference(element)
+              .inDays)
+              .toList()
+              .length;
+
           //유통기한 날짜로 오름차순 정렬
           items.sort((a, b) => a.get('expDate').compareTo(b.get('expDate')));
 
-          return Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Expanded(
-                child: Container(
-                  color: Colors.lightBlue[50],
-                  child: CustomScrollView(
-                    scrollDirection: Axis.vertical,
-                    slivers: [
-                      SliverPadding(
-                        padding: EdgeInsets.symmetric(vertical: 20.0),
-                        sliver: SliverFixedExtentList(
-                          //높이가 고정된 리스트를 보여주기위해 SliverFixedExtentList 을 사용
-                          itemExtent: 110.0,
-                          //itemExtent 는 행의 크기를 설정하는 속성이고 크기가 모두 같으면 그리는 속도가 빨라진다.
-                          delegate: SliverChildListDelegate(_fetchList(items)),
+          return CustomScrollView(
+            scrollDirection: Axis.vertical,
+            slivers: [
+              SliverToBoxAdapter(
+                child: Column(
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 15.0, vertical: 10.0),
+                      child: Container(
+                        margin: EdgeInsets.symmetric(
+                          vertical: 5.0,
+                          horizontal: 20.0,
                         ),
-                      )
-                    ],
-                  ),
+                        height: 130,
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          shape: BoxShape.rectangle, //컨테이너를 네모모양으로 만들어줌
+                          borderRadius: BorderRadius.circular(20.0),
+                          boxShadow: <BoxShadow>[
+                            BoxShadow(
+                              color: Colors.black12,
+                              blurRadius: 10.0, //자연스럽게 퍼지게
+                              offset: Offset(5.0, 5.0), //x축, y축 그림자 정도 지정
+                            ),
+                          ],
+                        ),
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                          child: Column(
+                            mainAxisSize: MainAxisSize.max,
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Row(
+                                mainAxisAlignment:
+                                MainAxisAlignment.spaceBetween,
+                                mainAxisSize: MainAxisSize.max,
+                                children: [
+                                  Row(
+                                    children: [
+                                      GestureDetector(
+                                        child: Column(
+                                          children: [
+                                            Text(
+                                              '전체',
+                                              style: TextStyle(
+                                                fontSize: 20,
+                                                color: Colors.green[600],
+                                              ),
+                                            ),
+                                            SizedBox(
+                                              height: 20,
+                                            ),
+                                            Text(
+                                              '$_itemCount',
+                                              style: TextStyle(
+                                                fontSize: 20,
+                                                fontWeight: FontWeight.bold,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                        onTap: () {
+                                          setState(() {
+                                            _filter = "all";
+                                          });
+                                        },
+                                      )
+                                    ],
+                                  ),
+                                  Row(
+                                    children: [
+                                      GestureDetector(
+                                        child: Column(
+                                          children: [
+                                            Text(
+                                              '유통기한임박',
+                                              style: TextStyle(
+                                                  fontSize: 20,
+                                                  color: Colors.red[400]),
+                                            ),
+                                            SizedBox(
+                                              height: 20,
+                                            ),
+                                            Text(
+                                              '$_closeCount',
+                                              style: TextStyle(
+                                                fontSize: 20,
+                                                fontWeight: FontWeight.bold,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                        onTap: () {
+                                          setState(() {
+                                            _filter = "close";
+                                          });
+                                        },
+                                      )
+                                    ],
+                                  ),
+                                  Row(
+                                    children: [
+                                      GestureDetector(
+                                        child: Column(
+                                          children: [
+                                            Text(
+                                              '유통기한만료',
+                                              style: TextStyle(
+                                                  fontSize: 20,
+                                                  color: Colors.purple),
+                                            ),
+                                            SizedBox(
+                                              height: 20,
+                                            ),
+                                            Text(
+                                              '$_expCount',
+                                              style: TextStyle(
+                                                fontSize: 20,
+                                                fontWeight: FontWeight.bold,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                        onTap: () {
+                                          setState(() {
+                                            _filter = "exp";
+                                          });
+                                        },
+                                      )
+                                    ],
+                                  )
+                                ],
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                    Container(
+                      height: 20,
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                      child: TextField(
+                        onChanged: (text) {
+                          setState(() {
+                            _query = text;
+                          });
+                        },
+                        autofocus: false,
+                        controller: _textEditingController,
+                        cursorColor: Colors.white,
+                        decoration: InputDecoration(
+                          border: OutlineInputBorder(),
+                          hintText: '검색',
+                          hintStyle: TextStyle(color: Colors.grey),
+                          filled: true,
+                          enabledBorder: OutlineInputBorder(
+                            borderRadius:
+                            BorderRadius.all(Radius.circular(20.0)),
+                            borderSide: BorderSide(color: Colors.red[100]),
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                            borderRadius:
+                            BorderRadius.all(Radius.circular(20.0)),
+                            borderSide: BorderSide(color: Colors.white),
+                          ),
+                        ),
+                        style: TextStyle(fontSize: 18),
+                      ),
+                    ),
+                    Container(
+                      height: 20,
+                    ),
+                  ],
+                ),
+              ),
+              SliverPadding(
+                padding: EdgeInsets.symmetric(vertical: 5.0),
+                sliver: SliverFixedExtentList(
+                  //높이가 고정된 리스트를 보여주기위해 SliverFixedExtentList 을 사용
+                  itemExtent: 95.0,
+                  //itemExtent 는 행의 크기를 설정하는 속성이고 크기가 모두 같으면 그리는 속도가 빨라진다.
+                  delegate: SliverChildListDelegate(_fetchList(items)),
                 ),
               )
             ],
@@ -92,7 +314,7 @@ class _ListPageState extends State<ListPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: SliderMenuContainer(
-          appBarColor: Colors.lightBlue[50],
+          appBarColor: Colors.grey[100],
           appBarHeight: 110,
           key: _key,
           sliderMenuOpenSize: 200,
@@ -121,7 +343,7 @@ class _ListPageState extends State<ListPage> {
               });
             },
           ),
-          sliderMain: body),
+          sliderMain: _buildBody()),
     );
   }
 }
